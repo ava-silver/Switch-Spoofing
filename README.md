@@ -1,4 +1,4 @@
-# Wii Bluetooth Replacement
+# Switch Bluetooth Replacement
 
 <p align="center">
   <img src="PCB/Assembled.jpg" alt="ESP32 Wii Bluetooth Replacement" width="400"/>
