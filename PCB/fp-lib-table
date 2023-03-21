@@ -1,3 +1,0 @@
-(fp_lib_table
-  (lib (name Wii_Bluetooth_Replacement)(type KiCad)(uri ${KIPRJMOD}/Wii_Bluetooth_Replacement.pretty)(options "")(descr ""))
-)
