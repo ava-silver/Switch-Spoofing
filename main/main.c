@@ -23,7 +23,7 @@ int app_main(void)
     // hci_dump_init(hci_dump_embedded_stdout_get_instance());
 
     // Configure BTstack for ESP32 VHCI Controller
-    // btstack_init();
+    btstack_init();
 
     // Setup example
     btstack_main(0, NULL);

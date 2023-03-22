@@ -28,7 +28,7 @@ typedef struct
     uint8_t key_stored;
 
     uint8_t uart_num;
-    // uart_dev_t * uart_port;
+    uart_dev_t *uart_port;
     uart_config_t uart_config;
     uart_intr_config_t uart_intr;
 
