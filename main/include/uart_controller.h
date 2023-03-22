@@ -2,6 +2,8 @@
 #define _UART_DRIVER_H_
 
 #include "driver/uart.h"
+#include "soc/uart_struct.h"
+#include "soc/uart_reg.h"
 
 // TX means sending from ESP32, RX means ESP32 receiving
 #define JOYCON_R_TX GPIO_NUM_32

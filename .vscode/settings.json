@@ -1,4 +1,10 @@
 {
     "idf.adapterTargetName": "esp32",
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "**/.i3/config": "i3",
+        "**/i3/config": "i3",
+        "*.ml": "ocaml",
+        "uart_controller.h": "c"
+    }
 }
