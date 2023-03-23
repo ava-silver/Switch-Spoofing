@@ -179,3 +179,9 @@ int btstack_main(int argc, const char *argv[])
 
     return 0;
 }
+
+int app_main(int argc, const char *argv[]);
+int app_main(int argc, const char *argv[])
+{
+    return btstack_main(argc, argv);
+}

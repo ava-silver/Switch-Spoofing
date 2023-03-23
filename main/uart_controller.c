@@ -184,11 +184,11 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
     uart_set_line_inverse(joycon->uart_num, UART_SIGNAL_TXD_INV);
 
     uart_driver_install(joycon->uart_num, 2048, 0, 0, NULL, 0);
-    uart_isr_free(joycon->uart_num);
-    if (joycon->type == UART_JOYCON_R)
-        uart_isr_register(joycon->uart_num, joycon_right_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
-    else if (joycon->type == UART_JOYCON_L)
-        uart_isr_register(joycon->uart_num, joycon_left_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
+    // uart_isr_free(joycon->uart_num);
+    // if (joycon->type == UART_JOYCON_R)
+    //     uart_isr_register(joycon->uart_num, joycon_right_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
+    // else if (joycon->type == UART_JOYCON_L)
+    //     uart_isr_register(joycon->uart_num, joycon_left_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
 
     joycon->uart_intr.intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M | UART_RXFIFO_TOUT_INT_ENA_M | UART_FRM_ERR_INT_ENA_M | UART_RXFIFO_OVF_INT_ENA_M | UART_BRK_DET_INT_ENA_M | UART_PARITY_ERR_INT_ENA_M;
     joycon->uart_intr.rxfifo_full_thresh = 4;
