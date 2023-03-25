@@ -30,7 +30,7 @@ gptimer_handle_t gptimer = NULL;
 gptimer_config_t timer_config = {
     .clk_src = GPTIMER_CLK_SRC_DEFAULT,
     .direction = GPTIMER_COUNT_UP,
-    .resolution_hz = 80 * 1000 * 1000, // 80MHz, 1 tick = 1us
+    .resolution_hz = 1 * 1000 * 1000, // 80MHz, 1 tick = 1us
     // .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
 };
 
@@ -39,6 +39,9 @@ static btstack_packet_callback_registration_t l2cap_event_callback_registration;
 static btstack_packet_callback_registration_t gap_event_callback_registration;
 
 static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
+/*
+This is a function that handles events from the Bluetooth Host Controller Interface (HCI). It takes as input the packet type, channel, packet data and size, and responds accordingly.
+*/
 static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
     uint8_t event;
@@ -67,6 +70,9 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
     }
 }
 
+/*
+This is a function that handles the main loop of the application. It takes a timer source structure as input and performs various tasks based on the elapsed time since the last loop iteration.
+*/
 void app_loop_handler(btstack_timer_source_t *ts)
 {
     UNUSED(ts);
@@ -132,6 +138,9 @@ void app_loop_handler(btstack_timer_source_t *ts)
 }
 
 int btstack_main(int argc, const char *argv[]);
+/*
+This is the main function of the application. It initializes various modules and registers event handlers, and then enters an infinite loop waiting for events to occur. This function takes as input the command line arguments passed to the application.
+*/
 int btstack_main(int argc, const char *argv[])
 {
     (void)argc;

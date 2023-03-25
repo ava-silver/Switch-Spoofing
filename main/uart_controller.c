@@ -318,7 +318,6 @@ void uart_joycon_handle(uart_joycon_t *joycon)
     if (joycon->connected)
     {
         // this should be different, more like a check read and then get data
-        /*
         if (joycon->message_received)
         {
             // Check responses and get data
@@ -369,7 +368,6 @@ void uart_joycon_handle(uart_joycon_t *joycon)
             joycon->uart_intr.rxfifo_full_thresh = 4;
             uart_enable_rx_intr(joycon->uart_num);
         }
-        */
     }
     else
     {
