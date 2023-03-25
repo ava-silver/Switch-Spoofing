@@ -38,6 +38,9 @@
  *  called from BTstack timers or in response to its callbacks, e.g. packet handlers.
  */
 
+#define ENABLE_LOG_INFO
+#define ENABLE_LOG_ERROR
+
 #include "btstack_port_esp32.h"
 #include "btstack_run_loop.h"
 #include "hci_dump.h"

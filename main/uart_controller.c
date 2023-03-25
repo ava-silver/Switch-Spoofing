@@ -1,3 +1,4 @@
+#include "esp_log.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include "btstack_config.h"
@@ -9,7 +10,6 @@
 #include "driver/uart.h"
 #include "rom/ets_sys.h"
 #include "esp_system.h"
-#include "gamepad.h"
 #include "timer.h"
 #include "uart_controller.h"
 #include "pair.h"
@@ -22,6 +22,8 @@
 // Bytes 14-21 are rumble (same as Bluetooth subcommand)
 // Byte 22 is subcommand ID
 // Following bytes are standard subcommand arguments
+
+static const char *TAG = "UART";
 
 uint8_t uart_handshake_commands[15][64] = {
     {16, 0xA1, 0xA2, 0xA3, 0xA4, 0x19, 0x01, 0x03, 0x07, 0x00, 0xA5, 0x02, 0x01, 0x7E, 0x00, 0x00, 0x00},                         // Handshake 1
@@ -80,6 +82,8 @@ const uint8_t uart_response_baud_switched[12] = {0x19, 0x81, 0x03, 0x07, 0x00, 0
 const uint8_t uart_mac_response_header[8] = {0x19, 0x81, 0x03, 0x0F, 0x00, 0x94, 0x01, 0x08};
 const uint8_t uart_status_response_header[8] = {0x19, 0x81, 0x03, 0x38, 0x00, 0x92, 0x00, 0x31}; // Header for long responses
 
+const int uart_buffer_size = (1024 * 2);
+
 uart_joycon_t joycon_right;
 uart_joycon_t joycon_left;
 // gpio_config_t pin_config;
@@ -101,7 +105,6 @@ static void uart_joycon_write_next_command(uart_joycon_t *joycon)
     if (joycon->handshake_pos < 14)
         joycon->handshake_pos++;
 }
-/*
 static void uart_joycon_intr_handle(uart_joycon_t *joycon)
 {
     if (!joycon->chars_remaining)
@@ -178,11 +181,12 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
     joycon->uart_config.parity = UART_PARITY_DISABLE;
     joycon->uart_config.stop_bits = UART_STOP_BITS_2;
     joycon->uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+    joycon->uart_config.source_clk = SOC_MOD_CLK_APB;
     uart_param_config(joycon->uart_num, &joycon->uart_config);
     uart_set_pin(joycon->uart_num, joycon->tx_pin, joycon->rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     uart_set_line_inverse(joycon->uart_num, UART_SIGNAL_TXD_INV);
 
-    uart_driver_install(joycon->uart_num, 2048, 0, 0, NULL, 0);
+    ESP_ERROR_CHECK(uart_driver_install(joycon->uart_num, uart_buffer_size, uart_buffer_size, 10, joycon->uart_queue, 0));
     // uart_isr_free(joycon->uart_num);
     // if (joycon->type == UART_JOYCON_R)
     //     uart_isr_register(joycon->uart_num, joycon_right_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
@@ -198,11 +202,6 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
 
     joycon->command_queued = 1;
     joycon->connected = 0;
-}
-*/
-
-static void uart_joycon_setup(uart_joycon_t *joycon)
-{
 }
 
 void uart_set_mac_address(uart_joycon_t *joycon)
@@ -409,6 +408,7 @@ void uart_init()
     // Create proper command queue
     // Add rumble and gyro angle calculation
 
+    ESP_LOGI(TAG, "Right/Left Setup");
     uart_joycon_setup(&joycon_right);
     uart_joycon_setup(&joycon_left);
 }

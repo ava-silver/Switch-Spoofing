@@ -1,5 +1,6 @@
 #define BTSTACK_FILE__ "spoofing.c"
 
+#include "esp_log.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include "btstack_config.h"
@@ -12,15 +13,15 @@
 #include "esp_system.h"
 #include "driver/gptimer.h"
 #include "connect.h"
-#include "gamepad.h"
 #include "hid_controller.h"
 #include "pair.h"
 #include "spi.h"
 #include "uart_controller.h"
 #include "timer.h"
-#include "wiimote.h"
 
 #define PAIR_PIN GPIO_NUM_14
+
+static const char *TAG = "Main";
 
 static btstack_timer_source_t app_loop;
 uint64_t app_timer; // App time running in ms
@@ -28,9 +29,10 @@ uint32_t prev_time = 0;
 uint8_t spi_en = 0;
 gptimer_handle_t gptimer = NULL;
 gptimer_config_t timer_config = {
-    .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+    .clk_src = GPTIMER_CLK_SRC_APB,
     .direction = GPTIMER_COUNT_UP,
-    .resolution_hz = 1 * 1000 * 1000, // 80MHz, 1 tick = 1us
+    .resolution_hz = 1 * 1000 * 1000, // 1MHz, 1 tick = 1us
+
     // .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
 };
 
@@ -111,10 +113,10 @@ void app_loop_handler(btstack_timer_source_t *ts)
     controller_handle(7);
     controller_handle(8);
 
-    gamepad_handle(1);
-    gamepad_handle(2);
-    gamepad_handle(3);
-    gamepad_handle(4);
+    // gamepad_handle(1);
+    // gamepad_handle(2);
+    // gamepad_handle(3);
+    // gamepad_handle(4);
 
     if ((app_timer >= 1500) && !spi_en)
     {
@@ -122,15 +124,15 @@ void app_loop_handler(btstack_timer_source_t *ts)
         gpio_set_level(SPI_EN, 1); // Accept SPI transfers
     }
 
-    if (app_timer - prev_time >= 15)
-    {
-        wiimote_spi_receive();
-        wiimote_spi_send(1);
-        wiimote_spi_send(2);
-        wiimote_spi_send(3);
-        wiimote_spi_send(4);
-        prev_time = app_timer;
-    }
+    // if (app_timer - prev_time >= 15)
+    // {
+    //     wiimote_spi_receive();
+    //     wiimote_spi_send(1);
+    //     wiimote_spi_send(2);
+    //     wiimote_spi_send(3);
+    //     wiimote_spi_send(4);
+    //     prev_time = app_timer;
+    // }
 
     // Re-register timer
     btstack_run_loop_set_timer(&app_loop, APP_LOOP_PERIOD_MS);
@@ -145,13 +147,17 @@ int btstack_main(int argc, const char *argv[])
 {
     (void)argc;
     (void)argv;
+    // initialize everything
     spi_slave_init(GPIO_NUM_19, GPIO_NUM_21, GPIO_NUM_17, GPIO_NUM_18);
+    ESP_LOGI(TAG, "Initializing UART/Joycons");
     uart_init();
 
+    ESP_LOGI(TAG, "Initializing HID controllers");
     init_controllers();
-    init_gamepads();
-    init_wiimotes();
+    // init_gamepads();
+    // init_wiimotes();
 
+    ESP_LOGI(TAG, "Initializing GPIO");
     gpio_set_direction(PAIR_PIN, GPIO_MODE_INPUT);
     gpio_set_pull_mode(PAIR_PIN, GPIO_PULLUP_ONLY);
     gpio_set_direction(SPI_EN, GPIO_MODE_OUTPUT);
@@ -165,6 +171,7 @@ int btstack_main(int argc, const char *argv[])
     hci_set_inquiry_mode(INQUIRY_MODE_RSSI_AND_EIR);
     hci_set_master_slave_policy(0); // Always begin connection as master
 
+    // add event handlers
     hci_event_callback_registration.callback = &hci_event_handler;
     hci_add_event_handler(&hci_event_callback_registration);
     l2cap_event_callback_registration.callback = &l2cap_event_handler;
@@ -173,16 +180,11 @@ int btstack_main(int argc, const char *argv[])
     hci_add_event_handler(&gap_event_callback_registration);
 
     setbuf(stdout, NULL);
-    // if (!gpio_get_level(PAIR_PIN)) hci_dump_open(NULL, HCI_DUMP_STDOUT);	// Dump HCI and ACL logs if button is held
+    // if (!gpio_get_level(PAIR_PIN))
+    //     hci_dump_open(NULL, HCI_DUMP_STDOUT); // Dump HCI and ACL logs if button is held
     hci_power_control(HCI_POWER_ON);
 
-    // timer_config_t config = {
-    //     .alarm_en = false,
-    //     .counter_en = false,
-    //     .counter_dir = TIMER_COUNT_UP,
-    //     .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
-    // };
-
+    ESP_LOGI(TAG, "Initializing Timers");
     app_timer = 0;
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
     ESP_ERROR_CHECK(gptimer_set_raw_count(gptimer, 0));

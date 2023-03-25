@@ -34,6 +34,8 @@ typedef struct
     uart_config_t uart_config;
     uart_intr_config_t uart_intr;
 
+    QueueHandle_t uart_queue;
+
     uint8_t rx_buf[256];
     uint8_t handshake_pos;
     int8_t chars_remaining;
