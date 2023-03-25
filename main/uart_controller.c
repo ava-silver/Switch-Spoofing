@@ -186,7 +186,7 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
     uart_set_pin(joycon->uart_num, joycon->tx_pin, joycon->rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     uart_set_line_inverse(joycon->uart_num, UART_SIGNAL_TXD_INV);
 
-    ESP_ERROR_CHECK(uart_driver_install(joycon->uart_num, uart_buffer_size, uart_buffer_size, 10, joycon->uart_queue, 0));
+    ESP_ERROR_CHECK(uart_driver_install(joycon->uart_num, uart_buffer_size, uart_buffer_size, 10, &joycon->uart_queue, 0));
     // uart_isr_free(joycon->uart_num);
     // if (joycon->type == UART_JOYCON_R)
     //     uart_isr_register(joycon->uart_num, joycon_right_intr_handle, NULL, ESP_INTR_FLAG_LOWMED, NULL);
