@@ -10,6 +10,7 @@
 #include "rom/ets_sys.h"
 #include "esp_system.h"
 #include "gamepad.h"
+#include "timer.h"
 #include "uart_controller.h"
 #include "pair.h"
 
@@ -81,7 +82,7 @@ const uint8_t uart_status_response_header[8] = {0x19, 0x81, 0x03, 0x38, 0x00, 0x
 
 uart_joycon_t joycon_right;
 uart_joycon_t joycon_left;
-gpio_config_t pin_config;
+// gpio_config_t pin_config;
 
 static void uart_joycon_write_next_command(uart_joycon_t *joycon)
 {
@@ -100,7 +101,7 @@ static void uart_joycon_write_next_command(uart_joycon_t *joycon)
     if (joycon->handshake_pos < 14)
         joycon->handshake_pos++;
 }
-
+/*
 static void uart_joycon_intr_handle(uart_joycon_t *joycon)
 {
     if (!joycon->chars_remaining)
@@ -197,6 +198,11 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
 
     joycon->command_queued = 1;
     joycon->connected = 0;
+}
+*/
+
+static void uart_joycon_setup(uart_joycon_t *joycon)
+{
 }
 
 void uart_set_mac_address(uart_joycon_t *joycon)
@@ -311,6 +317,8 @@ void uart_joycon_handle(uart_joycon_t *joycon)
 {
     if (joycon->connected)
     {
+        // this should be different, more like a check read and then get data
+        /*
         if (joycon->message_received)
         {
             // Check responses and get data
@@ -361,6 +369,7 @@ void uart_joycon_handle(uart_joycon_t *joycon)
             joycon->uart_intr.rxfifo_full_thresh = 4;
             uart_enable_rx_intr(joycon->uart_num);
         }
+        */
     }
     else
     {

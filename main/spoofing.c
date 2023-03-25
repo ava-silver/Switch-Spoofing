@@ -1,4 +1,4 @@
-#define BTSTACK_FILE__ "app_main.c"
+#define BTSTACK_FILE__ "spoofing.c"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -10,7 +10,7 @@
 #include "driver/uart.h"
 #include "rom/ets_sys.h"
 #include "esp_system.h"
-#include "driver/timer.h"
+#include "driver/gptimer.h"
 #include "connect.h"
 #include "gamepad.h"
 #include "hid_controller.h"
@@ -26,6 +26,13 @@ static btstack_timer_source_t app_loop;
 uint64_t app_timer; // App time running in ms
 uint32_t prev_time = 0;
 uint8_t spi_en = 0;
+gptimer_handle_t gptimer = NULL;
+gptimer_config_t timer_config = {
+    .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+    .direction = GPTIMER_COUNT_UP,
+    .resolution_hz = 80 * 1000 * 1000, // 80MHz, 1 tick = 1us
+    // .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
+};
 
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static btstack_packet_callback_registration_t l2cap_event_callback_registration;
@@ -63,7 +70,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 void app_loop_handler(btstack_timer_source_t *ts)
 {
     UNUSED(ts);
-    timer_get_counter_value(TIMER_GROUP_1, TIMER_1, &app_timer);
+    ESP_ERROR_CHECK(gptimer_get_raw_count(gptimer, &app_timer));
     app_timer = app_timer / 1000; // Convert us to ms
 
     if (!gpio_get_level(PAIR_PIN) && app_timer >= 1000)
@@ -129,7 +136,6 @@ int btstack_main(int argc, const char *argv[])
 {
     (void)argc;
     (void)argv;
-
     spi_slave_init(GPIO_NUM_19, GPIO_NUM_21, GPIO_NUM_17, GPIO_NUM_18);
     uart_init();
 
@@ -161,27 +167,22 @@ int btstack_main(int argc, const char *argv[])
     // if (!gpio_get_level(PAIR_PIN)) hci_dump_open(NULL, HCI_DUMP_STDOUT);	// Dump HCI and ACL logs if button is held
     hci_power_control(HCI_POWER_ON);
 
-    timer_config_t config = {
-        .alarm_en = false,
-        .counter_en = false,
-        .counter_dir = TIMER_COUNT_UP,
-        .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
-    };
+    // timer_config_t config = {
+    //     .alarm_en = false,
+    //     .counter_en = false,
+    //     .counter_dir = TIMER_COUNT_UP,
+    //     .divider = 80 // 1 us per tick - ticks per second is (80 MHz / divider)
+    // };
 
     app_timer = 0;
-    timer_init(TIMER_GROUP_1, TIMER_1, &config);
-    timer_set_counter_value(TIMER_GROUP_1, TIMER_1, 0);
-    timer_start(TIMER_GROUP_1, TIMER_1);
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
+    ESP_ERROR_CHECK(gptimer_set_raw_count(gptimer, 0));
+    ESP_ERROR_CHECK(gptimer_enable(gptimer));
+    ESP_ERROR_CHECK(gptimer_start(gptimer));
 
     app_loop.process = &app_loop_handler;
     btstack_run_loop_set_timer(&app_loop, APP_LOOP_PERIOD_MS);
     btstack_run_loop_add_timer(&app_loop);
 
     return 0;
-}
-
-int app_main(int argc, const char *argv[]);
-int app_main(int argc, const char *argv[])
-{
-    return btstack_main(argc, argv);
 }
