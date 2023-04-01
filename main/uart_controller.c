@@ -204,6 +204,8 @@ static void uart_joycon_setup(uart_joycon_t *joycon)
     joycon->connected = 0;
 }
 
+// extracts the MAC address of Joy-Con from uart_joycon_t->rx_buf
+// and stores in uart_joycon_t->address 
 void uart_set_mac_address(uart_joycon_t *joycon)
 {
     if (!joycon->address_stored)
@@ -220,6 +222,10 @@ void uart_set_mac_address(uart_joycon_t *joycon)
     }
 }
 
+// extract a link key from uart_joycon_t->rx_buf 
+// and XOR each byte with 0xAA and stores in link_key
+// calls gap_store_link_key_for_bid_addr to store the link key 
+// for the MAC address of the Joy-Con 
 void uart_store_link_key(uart_joycon_t *joycon)
 {
     if (!joycon->key_stored)
@@ -235,6 +241,8 @@ void uart_store_link_key(uart_joycon_t *joycon)
     }
 }
 
+// extracts calibration data for Joy-Con's accelerometere and gryoscope
+// from uart_joycon_t->rx_buf and stores in sub-fields of uart_joycon_t struct
 void uart_set_cal_imu(uart_joycon_t *joycon)
 {
     joycon->accel_x_offset = (joycon->rx_buf[33] << 8) | joycon->rx_buf[32];
@@ -251,6 +259,8 @@ void uart_set_cal_imu(uart_joycon_t *joycon)
     printf("Gyro Z offset: %d\n", joycon->gyro_z_offset);
 }
 
+// extracts calibration data from uart_joycon_t->rx_buf and stores
+// in sub-fields of the struct
 void uart_set_cal_joy(uart_joycon_t *joycon)
 {
     switch (joycon->type)
@@ -280,6 +290,8 @@ void uart_set_cal_joy(uart_joycon_t *joycon)
     printf("Joystick Y max: %d\n", joycon->joy_y_max);
 }
 
+// resets a joy-con controller and sets all properties of 
+// uart_joycon_t to default values
 void reset_joycon(uart_joycon_t *joycon)
 {
     memset(joycon->address, 0, 6);
@@ -312,6 +324,9 @@ void reset_joycon(uart_joycon_t *joycon)
     joycon->gyro_z_offset = 0;
 }
 
+// handles communciation with joy-con controller over uart
+// it checks for incoming data, parses it, and performs the
+// appropriate actions depending on the contents
 void uart_joycon_handle(uart_joycon_t *joycon)
 {
     if (joycon->connected)
@@ -383,6 +398,10 @@ void uart_joycon_handle(uart_joycon_t *joycon)
     }
 }
 
+// initializes the uart interface used to communicate with 
+// joy-con controllers
+// initializes 2 uart_joycon_t structs, one for right and one
+// for left and sets their properties accordingly
 void uart_init()
 {
     reset_joycon(&joycon_right);
